@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,9 +26,6 @@ public class User {
 
     @Column(nullable = false)
     private String password;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    Role role;
 
     public User (UserPayload userPayload){
         this.username = userPayload.getUsername();

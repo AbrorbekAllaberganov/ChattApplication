@@ -2,10 +2,14 @@ spring:
   application:
     name: ChatApplication
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/chat_app_db
     username: postgres
     password: 1234
     driver-class-name: org.postgresql.Driver
+  security:
+    user:
+      password: 123
+      username: abror
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
