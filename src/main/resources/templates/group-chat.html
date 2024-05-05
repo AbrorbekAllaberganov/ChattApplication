@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        /* Container for messages */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .group-name {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .message-container {
+            flex: 1; /* Grow to fill remaining vertical space */
+            max-height: 400px; /* Max height with scroll */
+            overflow-y: auto; /* Add scroll if content overflows */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Individual message */
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* Message sent by current user */
+        .message.sent {
+            background-color: #007bff;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        /* Message sent by other users */
+        .message.received {
+            background-color: #f2f2f2;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        /* Input and buttons */
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-container input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px; /* Adjust font size */
+            resize: none;
+        }
+
+        .input-container button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <h2 class="group-name" th:text="${groupName}">Group Name</h2>
+
+    <div class="message-container" id="messageContainer">
+        <!-- Messages will be dynamically added here -->
+        <div class="message sent" th:each="message : ${messages}">
+            <span class="sender" th:text="${message.sender}"></span>
+            <p th:text="${message.content}"></p>
+        </div>
+    </div>
+
+    <form class="input-container" id="sendMessageForm" th:action="@{/message-group}" method="post">
+        <input type="hidden" name="userId" th:value="${currentUser.id}"/>
+        <input type="text" id="messageInput" placeholder="Type your message here...">
+        <button type="submit">Send</button>
+        <button>Back</button>
+    </form>
+
+    <!--    <input type="text" id="messageInput" placeholder="Type your message here...">-->
+    <!--    <button>Send</button>-->
+</div>
+</body>
+</html>

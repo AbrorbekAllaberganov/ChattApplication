@@ -70,6 +70,25 @@
   text-align: right;
 }
 
+.back-button {
+        background-color: #4CAF50; /* Green background */
+        border: none;
+        color: white;
+        padding: 8px 15px; /* Smaller padding */
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px; /* Smaller font size */
+        margin-top: 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+        background-color: #45a049; /* Darker green background on hover */
+    }
+
 
     </style>
 </head>
@@ -95,6 +114,8 @@
         <textarea name="messageContent" rows="4" cols="50" placeholder="Type your message here..." required></textarea>
         <button type="submit">Send</button>
     </form>
+
+    <button onclick="goBack()" class="back-button">Back</button>
 </div>
 </body>
 
@@ -104,9 +125,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
 <script th:inline="javascript">
+
+    function goBack() {
+        window.location.href = '/home';
+    }
+
     var messages = /*[[${messages}]]*/ [];
     var currentUser= /*[[${currentUser}]]*/;
-    console.log(messages);
 
     function updateMessagesHTML() {
         var messagesHTML = messages.map(function(a) {
@@ -122,17 +147,28 @@
     var soc = new SockJS("/websocket-connection");
     var stompClient = Stomp.over(soc);
 
+<!--    let id1=messages[0].sender.id;-->
+<!--    let id2=messages[0].receiver.id;-->
+<!--    let index=0;-->
+<!--    if(id1>id2)-->
+<!--        index=id1*10+id2;-->
+<!--    else-->
+<!--        index=id2*10+id1;-->
+<!--    console.log(index);-->
+
+
     stompClient.connect({}, function(frame) {
         console.log('Connected'+frame);
         stompClient.subscribe('/topic/user-message', function(msg) {
             var message = msg.body;
-            console.log('parsing obj ');
-            console.log(JSON.parse(message));
+            let id=JSON.parse(message).receiver.id;
+
+            if(id===currentUser.id){
 
             messages.push(JSON.parse(message));
-            console.log(messages);
-            updateMessagesHTML();
 
+            updateMessagesHTML();
+            }
         });
     });
 

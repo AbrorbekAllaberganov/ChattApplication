@@ -1,6 +1,7 @@
 package com.example.ChattApplication.controller;
 
 import com.example.ChattApplication.entity.User;
+import com.example.ChattApplication.service.GroupService;
 import com.example.ChattApplication.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.Group;
@@ -18,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
+    private final GroupService groupService;
 
 
     @GetMapping("/login")
@@ -36,16 +38,19 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerPost(@RequestParam String email, @RequestParam String username, @RequestParam String password) {
-        System.out.println("email: " + email);
-        System.out.println("username: " + username);
-        System.out.println("password: " + password);
+    public String registerPost(@RequestParam String email,
+                               @RequestParam String username,
+                               @RequestParam String password,
+                               Model model) {
 
         User user=userService.saveUser(email, username, password);
 
         if (user==null){
             return "redirect:/register?error=true"; // Redirect to register page with error parameter
         }
+
+        model.addAttribute("groups",groupService.getChatGroups());
+
         return "redirect:/home";
     }
 
@@ -61,7 +66,7 @@ public class AuthController {
             return "redirect:/login?error=true"; // Redirect to login page with error parameter
         }
         session.setAttribute("user", user);
-
+        model.addAttribute("groups",groupService.getChatGroups());
         return "redirect:/home";
     }
 
@@ -76,6 +81,7 @@ public class AuthController {
         List<User> users = userService.getUsers();
         model.addAttribute("users", users);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("groups",groupService.getChatGroups());
         return "home";
     }
 

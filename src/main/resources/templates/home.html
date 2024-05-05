@@ -113,6 +113,76 @@
   cursor: pointer;
 }
 
+/* Style for the groups list */
+.groups-list {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+/* Style for each group item */
+.group-item {
+  margin-bottom: 5px;
+}
+
+/* Style for the group link */
+.group-link {
+  color: #333;
+  text-decoration: none;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 3px;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effect for group links */
+.group-link:hover {
+  background-color: #eaeaea;
+}
+
+/* Style for the private chat section container */
+#privateChatSection {
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Style for the heading of the private chat section */
+#privateChatSection h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #333;
+}
+
+/* Style for the list of private chat users */
+#privateChatUsers {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* Style for each user item in the private chat list */
+#privateChatUsers li {
+  margin-bottom: 5px;
+}
+
+/* Style for the user link in the private chat list */
+#privateChatUsers li a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+/* Hover effect for user links in the private chat list */
+#privateChatUsers li a:hover {
+  color: #0056b3;
+}
+
+
+
 
   </style>
 </head>
@@ -124,11 +194,6 @@
 <div class="container" id="privateChatSection">
   <h2>Private Chat</h2>
   <ul id="privateChatUsers">
-<!--    <li th:each="user : ${users}">-->
-<!--      <a th:href="@{'/user/' + ${user.id}}"> &lt;!&ndash; Assuming user has an 'id' property &ndash;&gt;-->
-<!--        <span th:text="${user.username}"></span>-->
-<!--      </a>-->
-<!--    </li>-->
 
     <li th:each="a : ${users}">
       <a th:if="${a.id != currentUser.id}" th:href="@{'/user/' + ${a.id}}">
@@ -138,12 +203,27 @@
 
   </ul>
 </div>
+
 <div class="container" id="groupChatSection" style="display: none;">
   <h2>Group Chat</h2>
   <ul id="groupChatGroups">
     <!-- Group list will be dynamically added here -->
   </ul>
   <button onclick="openModal()">Create New Group</button>
+
+
+  <div class="groups-list">
+    <ul id="groupChatUsers">
+
+      <li th:each="g : ${groups}" class="group-item">
+        <a th:href="@{'/group/' + ${g.id}}" class="group-link">
+          <span th:text="${g.name}"></span>
+        </a>
+      </li>
+
+    </ul>
+  </div>
+
 </div>
 
 <!-- The Modal -->
@@ -155,10 +235,15 @@
       <label for="groupName">Group Name:</label>
       <input type="text" id="groupName" name="groupName" required>
       <br>
-      <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer;">Create</button>
+      <button
+              type="submit"
+              style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer;"
+      >Create</button>
     </form>
   </div>
 </div>
+
+
 <script>
   // JavaScript to handle navigation between Private Chat and Group Chat sections
   const privateChatLink = document.getElementById('privateChatLink');
@@ -188,6 +273,45 @@
   function closeModal() {
     modal.style.display = 'none';
   }
+
+  function selectGroupChatLink() {
+
+    var privateChatLink = document.getElementById('privateChatLink');
+    var groupChatLink = document.getElementById('groupChatLink');
+
+    // Remove "selected" class from the private chat link
+    privateChatLink.classList.remove('selected');
+    // Add "selected" class to the group chat link
+    groupChatLink.classList.add('selected');
+}
+
+function selectGroupChatLink() {
+    var privateChatLink = document.getElementById('privateChatLink');
+    var groupChatLink = document.getElementById('groupChatLink');
+
+    // Remove "selected" class from the private chat link
+    privateChatLink.classList.remove('selected');
+    // Add "selected" class to the group chat link
+    groupChatLink.classList.add('selected');
+    groupChatSection.style.display = 'block';
+    privateChatSection.style.display = 'none';
+}
+
+// Function to check URL parameters and select group chat link if necessary
+function checkURLParameters() {
+    // Get URL parameters
+    var urlParams = new URLSearchParams(window.location.search);
+    // Check if "group" parameter exists and its value is "true"
+    if (urlParams.has('group') && urlParams.get('group') === 'true') {
+        // Select the "Group Chat" link in the navbar
+        selectGroupChatLink();
+    }
+}
+
+// Call the function to check URL parameters on page load
+window.onload = function() {
+    checkURLParameters();
+};
 
   // Fetch users and groups data from backend here and dynamically populate the lists
 </script>
