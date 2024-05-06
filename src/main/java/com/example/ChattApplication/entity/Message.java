@@ -20,7 +20,7 @@ public class Message {
     private User sender;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @JoinColumn(name = "receiver_id")
     private User receiver;
 
     @Column(nullable = false)
@@ -29,6 +29,8 @@ public class Message {
     @Column(nullable = false)
     @CreationTimestamp
     private LocalDateTime sentAt;
+
+    private Long groupId;
 
 }
 

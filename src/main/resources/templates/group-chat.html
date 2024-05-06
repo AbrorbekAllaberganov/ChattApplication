@@ -19,8 +19,7 @@
         }
 
         .message-container {
-            flex: 1; /* Grow to fill remaining vertical space */
-            max-height: 400px; /* Max height with scroll */
+           height: 400px; /* Max height with scroll */
             overflow-y: auto; /* Add scroll if content overflows */
             border: 1px solid #ccc;
             border-radius: 10px;
@@ -30,6 +29,8 @@
 
         /* Individual message */
         .message {
+            position: relative;
+            border: 1px solid #000;
             margin-bottom: 10px;
             padding: 10px;
             border-radius: 5px;
@@ -37,7 +38,9 @@
 
         /* Message sent by current user */
         .message.sent {
-            background-color: #007bff;
+
+            max-width:40%;
+            background-color: #235770;
             color: #fff;
             align-self: flex-end;
         }
@@ -73,30 +76,140 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .left-message {
+  text-align: left;
+}
+
+.right-message {
+  text-align: right;
+}
+.l_box {
+    text-align: left; /* Align text to the left */
+    margin-right: auto; /* Push the box to the left */
+    margin-left: 10px; /* Add some space from the left edge */
+}
+
+/* Positioning for right box */
+.r_box {
+    text-align: right; /* Align text to the right */
+    margin-left: auto; /* Push the box to the right */
+    margin-right: 10px; /* Add some space from the right edge */
+}
+.time{
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 11px;
+
+}
+.back-button {
+        background-color: #4CAF50; /* Green background */
+        border: none;
+        color: white;
+        padding: 8px 15px; /* Smaller padding */
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px; /* Smaller font size */
+        margin-top: 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+        background-color: #45a049; /* Darker green background on hover */
+    }
+
+
+
 
     </style>
 </head>
 <body>
 <div class="chat-container">
-    <h2 class="group-name" th:text="${groupName}">Group Name</h2>
+    <h2 class="group-name" th:text="${group.name}">Group Name</h2>
 
-    <div class="message-container" id="messageContainer">
-        <!-- Messages will be dynamically added here -->
-        <div class="message sent" th:each="message : ${messages}">
-            <span class="sender" th:text="${message.sender}"></span>
-            <p th:text="${message.content}"></p>
+    <!--    <div class="message-container" id="messageContainer">-->
+    <!--        &lt;!&ndash; Messages will be dynamically added here &ndash;&gt;-->
+    <!--        <div th:each="message : ${messages}"-->
+    <!--                th:classappend="${message.sender.id != user.id} ? 'left-l_box' : 'r_box'">-->
+    <!--            <div class="message sent" id="group-messages">-->
+    <!--                <span   class="sender" th:text="${message.sender.username}"></span>-->
+    <!--                <p th:text="${message.content}"></p>-->
+    <!--&lt;!&ndash;                <span th:text="${#temporals.format(message.sentAt, 'HH:mm')}"></span>&ndash;&gt;-->
+    <!--            </div>-->
+    <!--        </div>-->
+
+    <!--    </div>-->
+
+    <div id="chatMessages" class="message-container">
+        <div th:each="message : ${messages}"
+             class="message sent"
+             th:classappend="${message.sender.id != user.id} ? 'l_box' : 'r_box'">
+            <span class="sender" th:text="${message.sender.username}"></span>
+            <div class="message-content" th:text="${message.content}"></div>
         </div>
     </div>
 
-    <form class="input-container" id="sendMessageForm" th:action="@{/message-group}" method="post">
-        <input type="hidden" name="userId" th:value="${currentUser.id}"/>
-        <input type="text" id="messageInput" placeholder="Type your message here...">
+    <form class="input-container" id="sendMessageForm" th:action="@{/group}" method="post">
+        <input type="hidden" name="groupId" th:value="${group.id}"/>
+        <input name="message" type="text" id="messageInput" placeholder="Type your message here...">
         <button type="submit">Send</button>
-        <button>Back</button>
     </form>
 
-    <!--    <input type="text" id="messageInput" placeholder="Type your message here...">-->
-    <!--    <button>Send</button>-->
+    <button onclick="goBack()" class="back-button">Back</button>
+
 </div>
 </body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+        integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+
+<script th:inline="javascript">
+    var messages = /*[[${messages}]]*/ [];
+    var group = /*[[${group}]]*/;
+    var user = /*[[${user}]]*/;
+
+    function goBack() {
+        window.location.href = '/home';
+    }
+
+    function updateMessagesHTML() {
+        var messagesHTML = messages.map(function(a) {
+            return `<div
+                class="message sent ${a.sender.id != user.id ? 'l_box' : 'r_box'}">
+            <span class="sender">${a.sender.username}</span>
+            <div class="message-content">${a.content}</div>
+        </div>`;
+        }).join('');
+
+        document.getElementById('chatMessages').innerHTML = messagesHTML;
+    }
+
+    var soc = new SockJS("/websocket-connection");
+    var stompClient = Stomp.over(soc);
+
+    stompClient.connect({}, function(frame) {
+        console.log('Connected'+frame);
+        stompClient.subscribe('/topic/group-message', function(msg) {
+            var message = msg.body;
+            let id=JSON.parse(message).groupId;
+
+            if(id===group.id){
+
+            messages.push(JSON.parse(message));
+
+            updateMessagesHTML();
+            }
+        });
+    });
+
+
+
+</script>
+
 </html>

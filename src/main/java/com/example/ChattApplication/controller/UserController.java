@@ -6,6 +6,7 @@ import com.example.ChattApplication.payload.UserPayload;
 import com.example.ChattApplication.service.MessageService;
 import com.example.ChattApplication.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

@@ -18,17 +18,19 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
 
-    public Message saveMessage(String content, Long senderId, Long receiverId) {
+    public Message saveMessage(String content, Long senderId, Long receiverId, Long groupId) {
         try {
             Message message = new Message();
             message.setContent(content);
             message.setSender(userRepository.findById(senderId).orElseThrow(
                     () -> new ResourceNotFound("user", "id", senderId)
             ));
-            message.setReceiver(userRepository.findById(receiverId).orElseThrow(
+            if(receiverId != null)
+                message.setReceiver(userRepository.findById(receiverId).orElseThrow(
                     () -> new ResourceNotFound("user", "id", receiverId)
-            ));
-
+                ));
+            if(groupId != null)
+                message.setGroupId(groupId);
             return messageRepository.save(message);
         } catch (Exception e) {
             log.error(e.getMessage());

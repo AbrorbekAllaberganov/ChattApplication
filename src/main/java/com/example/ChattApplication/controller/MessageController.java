@@ -38,9 +38,19 @@ public class MessageController {
                               @RequestParam Long recipientId,
                               Model model) {
         User currentUser = (User) session.getAttribute("user");
-        Message message = messageService.saveMessage(messageContent, currentUser.getId(), recipientId);
+        Message message = messageService.saveMessage(messageContent, currentUser.getId(), recipientId,null);
         simpMessagingTemplate.convertAndSend("/topic/user-message", message);
         model.addAttribute("currentUser", currentUser);
         return "redirect:/user/" + recipientId;
+    }
+
+    @MessageMapping("/type")
+    public void type(){
+        simpMessagingTemplate.convertAndSend("/topic/type", "is typing...");
+    }
+
+    @MessageMapping("/keyUp")
+    public void keyUp(){
+        simpMessagingTemplate.convertAndSend("/topic/keyUp", "");
     }
 }

@@ -89,15 +89,25 @@
         background-color: #45a049; /* Darker green background on hover */
     }
 
+    .head-chat{
+      display: flex;
+      gap:15px;
+      align-items: center;
+    }
+
+
 
     </style>
 </head>
 <body>
 <div class="container">
     <h2>User Chat</h2>
-    <div>
+
+    <div class="head-chat">
         <p th:text="'Chatting with: ' + ${user.username}"></p>
+        <h4 id="message" style="color: #888;"></h4>
     </div>
+
 
     <div id="chatMessages" class="chat-messages">
         <div th:each="message : ${messages}"
@@ -111,7 +121,13 @@
     <!-- Form to send new message -->
     <form id="sendMessageForm" th:action="@{/send-message}" method="post">
         <input type="hidden" name="recipientId" th:value="${user.id}"/>
-        <textarea name="messageContent" rows="4" cols="50" placeholder="Type your message here..." required></textarea>
+        <textarea
+                name="messageContent"
+                rows="4" cols="50"
+                placeholder="Type your message here..." required
+                onkeypress="typeMessage()"
+                onkeyup="keyUp()"
+        ></textarea>
         <button type="submit">Send</button>
     </form>
 
@@ -147,16 +163,6 @@
     var soc = new SockJS("/websocket-connection");
     var stompClient = Stomp.over(soc);
 
-<!--    let id1=messages[0].sender.id;-->
-<!--    let id2=messages[0].receiver.id;-->
-<!--    let index=0;-->
-<!--    if(id1>id2)-->
-<!--        index=id1*10+id2;-->
-<!--    else-->
-<!--        index=id2*10+id1;-->
-<!--    console.log(index);-->
-
-
     stompClient.connect({}, function(frame) {
         console.log('Connected'+frame);
         stompClient.subscribe('/topic/user-message', function(msg) {
@@ -170,7 +176,27 @@
             updateMessagesHTML();
             }
         });
+
+        stompClient.subscribe('/topic/type', function(msg) {
+            document.getElementById("message").innerText=msg.body;
+        });
+
+        stompClient.subscribe('/topic/keyUp', function(msg) {
+            document.getElementById("message").innerText=msg.body;
+        });
+
     });
+
+    function typeMessage(){
+        stompClient.send("/app/type",null,{});
+    }
+
+    function keyUp(){
+        setTimeout(function(){
+        stompClient.send("/app/keyUp",null,{})
+        },1500)
+    }
+
 
 </script>
 
