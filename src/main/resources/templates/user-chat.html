@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Chat</title>
+    <style>
+    /* General styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Container styles */
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Chat message styles */
+    .message-container {
+      margin-bottom: 10px;
+    }
+    .message-container .sender {
+      font-weight: bold;
+    }
+    .message-container .message-content {
+      background-color: #f2f2f2;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .chat-messages {
+        max-height: 550px; /* Set maximum height for the container */
+        overflow-y: auto; /* Enable vertical scrollbar when content overflows */
+    }
+
+    /* Form styles */
+    #sendMessageForm {
+      margin-top: 20px;
+    }
+    #sendMessageForm textarea {
+      width: calc(100% - 70px);
+      resize: none;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #sendMessageForm button {
+      width: 60px;
+      padding: 10px;
+      border: none;
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+
+    .left-message {
+  text-align: left;
+}
+
+.right-message {
+  text-align: right;
+}
+
+.back-button {
+        background-color: #4CAF50; /* Green background */
+        border: none;
+        color: white;
+        padding: 8px 15px; /* Smaller padding */
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px; /* Smaller font size */
+        margin-top: 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+        background-color: #45a049; /* Darker green background on hover */
+    }
+
+    .head-chat{
+      display: flex;
+      gap:15px;
+      align-items: center;
+    }
+
+
+
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>User Chat</h2>
+
+    <div class="head-chat">
+        <p th:text="'Chatting with: ' + ${user.username}"></p>
+        <h4 id="message" style="color: #888;"></h4>
+    </div>
+
+
+    <div id="chatMessages" class="chat-messages">
+        <div th:each="message : ${messages}"
+             th:classappend="${message.sender.id != currentUser.id} ? 'left-message' : 'right-message'"
+             class="message-container">
+            <span class="sender" th:text="${message.sender.username}"></span>
+            <div class="message-content" th:text="${message.content}"></div>
+        </div>
+    </div>
+
+    <!-- Form to send new message -->
+    <form id="sendMessageForm" th:action="@{/send-message}" method="post">
+        <input type="hidden" name="recipientId" th:value="${user.id}"/>
+        <textarea
+                name="messageContent"
+                rows="4" cols="50"
+                placeholder="Type your message here..." required
+                onkeypress="typeMessage()"
+                onkeyup="keyUp()"
+        ></textarea>
+        <button type="submit">Send</button>
+    </form>
+
+    <button onclick="goBack()" class="back-button">Back</button>
+</div>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+        integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script th:inline="javascript">
+
+    function goBack() {
+        window.location.href = '/home';
+    }
+
+    var messages = /*[[${messages}]]*/ [];
+    var currentUser= /*[[${currentUser}]]*/;
+    var user= /*[[${user}]]*/;
+
+    function updateMessagesHTML() {
+        var messagesHTML = messages.map(function(a) {
+            return `<div class="message-container ${a.sender.id != currentUser.id ? 'left-message' : 'right-message'}">
+                        <span class="sender">${a.sender.username}</span>
+                        <div class="message-content">${a.content}</div>
+                    </div>`;
+        }).join('');
+
+        document.getElementById('chatMessages').innerHTML = messagesHTML;
+    }
+
+    var soc = new SockJS("/websocket-connection");
+    var stompClient = Stomp.over(soc);
+
+    stompClient.connect({}, function(frame) {
+<!--        console.log('Connected'+frame);-->
+        stompClient.subscribe('/topic/user-message', function(msg) {
+            var message = msg.body;
+            let id=JSON.parse(message).receiver.id;
+
+            if(id===currentUser.id){
+                messages.push(JSON.parse(message));
+                updateMessagesHTML();
+            }
+        });
+
+        stompClient.subscribe('/topic/type', function(msg) {
+            if(user.id==msg.body){
+                document.getElementById("message").innerText="is typing...";
+            }
+        });
+
+        stompClient.subscribe('/topic/keyUp', function(msg) {
+            document.getElementById("message").innerText=msg.body;
+        });
+
+    });
+
+    function typeMessage(){
+        stompClient.send("/app/type",{},currentUser.id);
+    }
+
+    function keyUp(){
+        setTimeout(function(){
+        stompClient.send("/app/keyUp",null,{})
+        },1500)
+    }
+
+
+
+</script>
+
+</html>
+
+

@@ -1,33 +1,56 @@
 package com.example.ChattApplication.controller;
 
 import com.example.ChattApplication.entity.Message;
+import com.example.ChattApplication.entity.User;
 import com.example.ChattApplication.payload.MessagePayload;
 import com.example.ChattApplication.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.servlet.http.HttpSession;
 
-@RestController
-@RequestMapping("/api/message")
+@Controller
+@RequestMapping
 @RequiredArgsConstructor
 public class MessageController {
     private final MessageService messageService;
 
-    @PostMapping
-    public Message saveMessage(MessagePayload messagePayload){
-        return messageService.saveMessage(messagePayload);
+    //    @Autowired
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
+
+    @MessageMapping("/new-session")
+    @SendTo("/topic/user-message")
+    public Message sendMessages(Message message) {
+        return message;
     }
 
-    @DeleteMapping("/{id}")
-    public boolean deleteMessageById(@PathVariable Long id){
-        return messageService.deleteById(id);
+    @PostMapping("/send-message")
+    public String saveMessage(HttpSession session,
+                              @RequestParam String messageContent,
+                              @RequestParam Long recipientId,
+                              Model model) {
+        User currentUser = (User) session.getAttribute("user");
+        Message message = messageService.saveMessage(messageContent, currentUser.getId(), recipientId,null);
+        simpMessagingTemplate.convertAndSend("/topic/user-message", message);
+        model.addAttribute("currentUser", currentUser);
+        return "redirect:/user/" + recipientId;
     }
 
-    @GetMapping
-    public List<Message> getMessagesBySenderAndReceiver(@RequestParam ("sender") Long sender,
-                                                        @RequestParam ("receiver")Long receiver){
-        return messageService.getMessagesBySenderAndReceiverId(sender, receiver);
+    @MessageMapping("/type")
+    public void type(Long userId){
+        simpMessagingTemplate.convertAndSend("/topic/type", userId);
     }
 
+    @MessageMapping("/keyUp")
+    public void keyUp(){
+        simpMessagingTemplate.convertAndSend("/topic/keyUp", "");
+    }
 }

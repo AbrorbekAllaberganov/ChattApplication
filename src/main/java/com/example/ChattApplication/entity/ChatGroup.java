@@ -1,6 +1,8 @@
 package com.example.ChattApplication.entity;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -8,6 +10,8 @@ import java.util.List;
 
 @Data
 @Entity
+@Getter
+@Setter
 @Table(name = "chat_groups")
 public class ChatGroup {
 
@@ -18,11 +22,6 @@ public class ChatGroup {
     @Column(nullable = false)
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "group_members",
-            joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> members;
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Message> messages;
 }
