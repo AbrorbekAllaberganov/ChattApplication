@@ -45,8 +45,8 @@ public class MessageController {
     }
 
     @MessageMapping("/type")
-    public void type(){
-        simpMessagingTemplate.convertAndSend("/topic/type", "is typing...");
+    public void type(Long userId){
+        simpMessagingTemplate.convertAndSend("/topic/type", userId);
     }
 
     @MessageMapping("/keyUp")

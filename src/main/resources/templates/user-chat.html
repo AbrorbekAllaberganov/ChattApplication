@@ -97,6 +97,7 @@
 
 
 
+
     </style>
 </head>
 <body>
@@ -148,6 +149,7 @@
 
     var messages = /*[[${messages}]]*/ [];
     var currentUser= /*[[${currentUser}]]*/;
+    var user= /*[[${user}]]*/;
 
     function updateMessagesHTML() {
         var messagesHTML = messages.map(function(a) {
@@ -164,21 +166,21 @@
     var stompClient = Stomp.over(soc);
 
     stompClient.connect({}, function(frame) {
-        console.log('Connected'+frame);
+<!--        console.log('Connected'+frame);-->
         stompClient.subscribe('/topic/user-message', function(msg) {
             var message = msg.body;
             let id=JSON.parse(message).receiver.id;
 
             if(id===currentUser.id){
-
-            messages.push(JSON.parse(message));
-
-            updateMessagesHTML();
+                messages.push(JSON.parse(message));
+                updateMessagesHTML();
             }
         });
 
         stompClient.subscribe('/topic/type', function(msg) {
-            document.getElementById("message").innerText=msg.body;
+            if(user.id==msg.body){
+                document.getElementById("message").innerText="is typing...";
+            }
         });
 
         stompClient.subscribe('/topic/keyUp', function(msg) {
@@ -188,7 +190,7 @@
     });
 
     function typeMessage(){
-        stompClient.send("/app/type",null,{});
+        stompClient.send("/app/type",{},currentUser.id);
     }
 
     function keyUp(){
@@ -196,6 +198,7 @@
         stompClient.send("/app/keyUp",null,{})
         },1500)
     }
+
 
 
 </script>
