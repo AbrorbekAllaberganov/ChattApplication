@@ -59,10 +59,8 @@ public class AuthController {
                             @RequestParam String username,
                             @RequestParam String password,
                             Model model) {
-        System.out.println(username + " - "+password);
         User user = userService.findUser(username, password);
         if (user == null) {
-            // User not found or password incorrect
             return "redirect:/login?error=true"; // Redirect to login page with error parameter
         }
         session.setAttribute("user", user);

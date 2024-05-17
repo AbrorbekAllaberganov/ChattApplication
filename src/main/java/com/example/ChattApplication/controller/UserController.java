@@ -41,14 +41,4 @@ public class UserController {
         return "user-chat";
     }
 
-    @DeleteMapping("/{id}")
-    public boolean deleteUser(@PathVariable Long id) {
-        return userService.deleteUser(id);
-    }
-
-    @GetMapping
-    public List<User> getUser() {
-        return userService.getUsers();
-    }
-
 }

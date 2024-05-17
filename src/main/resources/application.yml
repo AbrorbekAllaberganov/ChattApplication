@@ -3,8 +3,8 @@ spring:
     name: ChatApplication
   datasource:
     url: jdbc:postgresql://localhost:5432/chat_app_db
-    username: USERNAME
-    password: PASSWORD
+    username: postgres
+    password: 1234
     driver-class-name: org.postgresql.Driver
   security:
     user:

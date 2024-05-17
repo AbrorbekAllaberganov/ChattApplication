@@ -52,7 +52,7 @@ public class GroupController {
         User user=(User) session.getAttribute("user");
 
         ChatGroup group = groupService.getChatGroupById(id);
-        if(group == null)
+        if(group == null || user==null)
             return "redirect:/home?group=true";
 
         model.addAttribute("group", group);

@@ -22,7 +22,6 @@ import javax.servlet.http.HttpSession;
 public class MessageController {
     private final MessageService messageService;
 
-    //    @Autowired
     private final SimpMessagingTemplate simpMessagingTemplate;
 
 

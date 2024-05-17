@@ -149,6 +149,7 @@
              th:classappend="${message.sender.id != user.id} ? 'l_box' : 'r_box'">
             <span class="sender" th:text="${message.sender.username}"></span>
             <div class="message-content" th:text="${message.content}"></div>
+            <span th:text="${#temporals.format(message.sentAt, 'HH:mm')}"></span>
         </div>
     </div>
 
@@ -180,10 +181,12 @@
 
     function updateMessagesHTML() {
         var messagesHTML = messages.map(function(a) {
+        let message_date=a.sendAt.getHours()+":"+a.sendAt.getMinutes;
             return `<div
                 class="message sent ${a.sender.id != user.id ? 'l_box' : 'r_box'}">
             <span class="sender">${a.sender.username}</span>
             <div class="message-content">${a.content}</div>
+            <span>${message_date}</span>
         </div>`;
         }).join('');
 
